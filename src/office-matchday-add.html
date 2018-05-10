@@ -1,0 +1,290 @@
+<!--
+@license
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-query.html">
+
+<link rel="import" href="../bower_components/iron-form/iron-form.html">
+
+<link rel="import" href="../bower_components/iron-overlay-behavior/iron-overlay-behavior.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-card/paper-card.html">
+
+<link rel="import" href="../bower_components/moment-element/moment-element.html">
+<link rel="import" href="../bower_components/app-datepicker/app-datepicker-dialog.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+
+<dom-module id="office-matchday-add">
+  <template>
+    <custom-style>
+      <style is="custom-style">
+        :host {
+          height: 100%;
+          display: block;
+          width: 100%;
+          padding-top: 70px;
+        }
+
+        .wrapper {}
+
+        [hidden] {
+          display: none;
+        }
+
+        #addMatchdayForm form {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .date-wrapper {
+          display: flex;
+          justify-content: center;
+        }
+
+        .date__inner {
+          color: var(--text-primary-color);
+          font-size: 1.3em;
+        }
+
+        paper-card {
+          width: 100%;
+        }
+
+        moment-element {
+          height: 40px;
+          padding: 8px;
+          box-sizing: border-box !important;
+        }
+
+        h1 {
+          text-align: center;
+        }
+
+        .title {
+          font-size: 2em;
+          font-weight: 200;
+          margin: 0 auto;
+          display: block;
+          color: var(--text-primary-color);
+          text-align: center;
+        }
+
+        .matchdays__add {
+          height: 100%;
+          display: block;
+          padding: 10px;
+        }
+
+        paper-button {
+          display: block;
+          max-width: 200px;
+          margin: 0 auto;
+          text-align: center;
+          margin: 20px 0 40px 0;
+        }
+
+        vaadin-date-picker {
+          width: 100%;
+        }
+
+        paper-button.custom {
+          --paper-button-ink-color: var(--accent-color);
+          /* These could also be individually defined for each of the
+            specific css classes, but we'll just do it once as an example */
+          --paper-button-flat-keyboard-focus: {
+            background-color: var(--paper-pink-a200);
+            color: var(--text-primary-color) !important;
+          }
+        }
+
+        .date__inner {
+          display: block;
+          font-size: 1.1em;
+        }
+
+        .date-wrapper {}
+
+        paper-button.custom:hover {
+          background-color: var(--paper-indigo-100);
+        }
+
+        paper-button.pink {
+          color: var(--text-primary-color);
+          background-color: var(--accent-color);
+        }
+
+        paper-button.pink[disabled] {
+          background: #eaeaea;
+          color: #a8a8a8;
+        }
+
+        paper-button {
+          max-width: 100%;
+        }
+      </style>
+    </custom-style>
+
+    <firebase-query id="seasons" app-name="office-fifa" path="/seasons" data="{{seasons}}">
+    </firebase-query>
+
+    <firebase-document id="matchdaysDocument" app-name="office-fifa" data="{{matchday}}">
+    </firebase-document>
+    <paper-card>
+      <div class="matchdays__add">
+
+        <span class="title">Create Matchday</span>
+
+        <div class="wrapper">
+          <iron-form id="addMatchdayForm">
+            <form>
+
+              <div on-click="toggleCalendar" class="date-wrapper">
+                <paper-icon-button icon="date-range">Pick a date</paper-icon-button>
+                <!-- <overlay-datetime-picker id="date" opened="{{isDatePickerOpened}}" hidden$="{{!isDatePickerOpened}}" auto-confirm value="{{dateTime}}"></overlay-datetime-picker> -->
+                <app-datepicker-dialog with-backdrop></app-datepicker-dialog>
+                <moment-element id="moment" datetime="{{dateTime}}" from="now" output="{{outputA}}">
+                  <span class="date__inner">[[outputA]] [[outputB]]</span>
+                </moment-element>
+                <moment-element hidden$="true" output-format="HH:mm" datetime="{{dateTime}}" output="{{outputB}}"></moment-element>
+              </div>
+
+              <paper-dropdown-menu required id="type" label="Type">
+                <paper-listbox slot="dropdown-content" selected="{{type}}" attr-for-selected="type">
+                  <paper-item type="season">Season Tournament</paper-item>
+                  <paper-item type="knockout">Knockout Tournament</paper-item>
+                </paper-listbox>
+              </paper-dropdown-menu>
+
+              <paper-dropdown-menu required id="mode" label="Mode">
+                <paper-listbox slot="dropdown-content" selected="{{mode}}" attr-for-selected="mode">
+                  <paper-item mode="singles">Singles</paper-item>
+                  <paper-item mode="doubles">Doubles</paper-item>
+                </paper-listbox>
+              </paper-dropdown-menu>
+
+              <template is="dom-if" if="{{showSeasonDropdown}}">
+                <paper-dropdown-menu required id="season" label="Season">
+                  <paper-listbox slot="dropdown-content" selected="{{season}}" attr-for-selected="id">
+                    <template is="dom-repeat" items="{{seasons}}" as="season">
+                      <paper-item id="[[season.$key]]">[[season.name]]</paper-item>
+                    </template>
+                  </paper-listbox>
+                </paper-dropdown-menu>
+              </template>
+
+              <paper-button id="create" on-click="create" raised class="custom pink">Create</paper-button>
+            </form>
+          </iron-form>
+        </div>
+      </div>
+    </paper-card>
+  </template>
+
+  <script>
+    class OfficeMatchdayAdd extends Polymer.Element {
+      static get is() { return 'office-matchday-add'; }
+
+      static get properties() {
+        return {
+          matchday: {
+            type: Object
+          },
+          seasons: {
+            type: Object
+          },
+          season: {
+            type: Number
+          },
+          mode: {
+            type: String
+          },
+          type: {
+            type: String
+          },
+          showSeasonDropdown: {
+            type: Boolean,
+            computed: 'shouldShowSeasonDropdown(type)'
+          },
+          dateTime: {
+            type: Object
+          }
+        }
+      }
+
+      toggleCalendar() {
+        this.$.date.opened = !this.$.date.opened;
+      }
+
+      shouldShowSeasonDropdown() {
+        return this.type === 'season';
+      }
+
+      _computeNextMonday() {
+
+      }
+
+      getNextMondayTimestamp() {
+        const dayINeed = 1; // for Thursday
+        const momentElement = this.shadowRoot.querySelector("#moment");
+
+
+        if (!momentElement) {
+          return Date.now();
+        }
+
+        const moment = momentElement.getMoment();
+
+        // if we haven't yet passed the day of the week that I need:
+        if (moment.isoWeekday() <= dayINeed) {
+          // then just give me this week's instance of that day
+          return moment.isoWeekday(dayINeed).hour(18).minute(0).second(0).valueOf();
+        } else {
+          // otherwise, give me next week's instance of that day
+          return moment.add(1, 'weeks').isoWeekday(dayINeed).hour(18).minute(0).second(0).valueOf();
+        }
+      }
+
+      create() {
+        if (!this.$.addMatchdayForm.validate()) {
+          return;
+        }
+
+        this.set('matchday', {
+          date: this.dateTime,
+          type: this.type,
+          mode: this.mode,
+          season: this.season ? this.season : 'knockout',
+          isStarted: false,
+          isFinished: false,
+          status: 'active'
+        });
+        this.$.matchdaysDocument.saveValue('/matchdays').then(() => {
+          this.dispatchEvent(new CustomEvent('matchday-added'));
+          this.dateTime = this.getNextMondayTimestamp();
+          this.mode = 0;
+          this.type = 0;
+        });
+
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+        this.dateTime = this.getNextMondayTimestamp();
+      }
+    }
+
+    window.customElements.define(OfficeMatchdayAdd.is, OfficeMatchdayAdd);
+  </script>
+</dom-module>

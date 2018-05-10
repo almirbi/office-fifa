@@ -1,0 +1,263 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-query.html">
+<link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+
+<link rel="import" href="office-matchday-approve-user.html">
+
+
+<dom-module id="office-matchday-approve">
+  <template>
+    <custom-style>
+      <style is="custom-style">
+        * {
+          outline: none!important;
+        }
+
+        paper-listbox {
+          text-align: left;
+        }
+
+        paper-checkbox {
+          margin-bottom: 10px;
+        }
+
+        .title {
+          font-size: 1.6em;
+          font-weight: 200;
+          text-align: center;
+          color: var(--text-primary-color);
+        }
+
+        paper-button.custom {
+          --paper-button-ink-color: var(--accent-color);
+          /* These could also be individually defined for each of the
+            specific css classes, but we'll just do it once as an example */
+          --paper-button-flat-keyboard-focus: {
+            background-color: var(--paper-pink-a200);
+            color: var(--text-primary-color) !important;
+          }
+        }
+
+        paper-button.custom:hover {
+          background-color: var(--paper-indigo-100);
+        }
+
+        paper-button.pink {
+          color: var(--text-primary-color);
+          background-color: var(--accent-color);
+        }
+
+        paper-button.pink[disabled] {
+          background: #eaeaea;
+          color: #a8a8a8;
+        }
+
+        paper-button {
+          max-width: 100%;
+          margin: 20px 0;
+        }
+      </style>
+    </custom-style>
+
+    <firebase-query app-name="office-fifa" path="/matchdays/[[matchday.$key]]/users" data="{{joinedUsers}}">
+    </firebase-query>
+    <firebase-document app-name="office-fifa" id="query" data="fingData">
+    </firebase-document>
+    <firebase-document app-name="office-fifa" id="queryUsersFixture">
+    </firebase-document>
+
+
+    <iron-collapse opened="[[!matchday.isStarted]]" id="collapse">
+      <span class="title">Joined Players</span>
+      <paper-listbox>
+        <template is="dom-repeat" items="[[joinedUsers]]" as="item">
+
+          <iron-collapse opened="[[item.$val]]">
+            <office-matchday-approve-user matchday="[[matchday]]" user-id="[[item.$key]]" current-user="[[user]]"></office-matchday-approve-user>
+          </iron-collapse>
+        </template>
+      </paper-listbox>
+
+      <template is="dom-if" if="[[user.isAdmin]]">
+        <paper-button disabled="[[!canStartTournament(joinedUsers.*, matchday.isStarted)]]" class="custom pink" on-click="start"
+          raised>Start tournament</paper-button>
+      </template>
+
+    </iron-collapse>
+
+    <paper-toast no-cancel-on-outside-click="false"></paper-toast>
+  </template>
+
+  <script>
+    class OfficeMatchdayApprove extends Polymer.Element {
+      static get is() { return 'office-matchday-approve'; }
+
+      static get properties() {
+        return {
+          matchday: {
+            type: Object
+          },
+          user: {
+            type: Object
+          },
+          joinedUsers: {
+            type: Object
+          },
+          fingData: {
+            type: Object,
+            value: {}
+          },
+          savedComboes: {
+            type: Object,
+            value: {}
+          },
+          PUSH_CHARS: {
+            type: String,
+            value: '-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz'
+          },
+          lastPushTime: {
+            type: Number,
+            value: 0
+          },
+          lastRandChars: {
+            type: Array,
+            value: []
+          }
+        }
+      }
+
+      static get observers() {
+        return ['dataChanged(fingData.*)']
+      }
+
+      countJoinedUsers(joinedUsers) {
+        return joinedUsers && joinedUsers.reduce((acc, item) => acc + (item.$val ? 1 : 0), 0);
+      }
+
+      canStartTournament(joinedUsers) {
+        return this.countJoinedUsers(this.joinedUsers) > 1 && !this.matchday.isStarted;
+      }
+
+      catchError(e) {
+        this.$.toaster.show({
+          text: e.detail.message
+        });
+      }
+
+      dataChanged(data) {
+        if (data && data.base.home && data.base.away && !this.get('savedComboes.' + data.base.home + data.base.away)) {
+          this.set('savedComboes.' + data.base.home + data.base.away, true);
+          this.$.query.saveValue(`/fixtures`).then(() => {
+            let key = JSON.parse(JSON.stringify(this.$.query.ref.key));
+
+            this.$.queryUsersFixture.data = true;
+            let p1 = this.$.queryUsersFixture.saveValue(`/users/${data.base.home}/fixtures`, key),
+              p2 = this.$.queryUsersFixture.saveValue(`/users/${data.base.away}/fixtures`, key);
+
+            Promise.all([p1, p2]).then(values => {
+              this.$.queryUsersFixture.saveValue(`/matchdays/${this.matchday.$key}/fixtures/`, key);
+            });
+          });
+        }
+      }
+
+      generatePushId() {
+        var now = new Date().getTime();
+        var duplicateTime = (now === this.lastPushTime);
+        this.lastPushTime = now;
+
+        var timeStampChars = new Array(8);
+        for (var i = 7; i >= 0; i--) {
+          timeStampChars[i] = this.PUSH_CHARS.charAt(now % 64);
+          // NOTE: Can't use << here because javascript will convert to int and lose the upper bits.
+          now = Math.floor(now / 64);
+        }
+        if (now !== 0) throw new Error('We should have converted the entire timestamp.');
+
+        var id = timeStampChars.join('');
+
+        if (!duplicateTime) {
+          for (let i = 0; i < 12; i++) {
+            this.lastRandChars[i] = Math.floor(Math.random() * 64);
+          }
+        } else {
+          // If the timestamp hasn't changed since last push, use the same random number, except incremented by 1.
+          for (i = 11; i >= 0 && this.lastRandChars[i] === 63; i--) {
+            this.lastRandChars[i] = 0;
+          }
+          this.lastRandChars[i]++;
+        }
+
+        for (i = 0; i < 12; i++) {
+          id += this.PUSH_CHARS.charAt(this.lastRandChars[i]);
+        }
+
+        if (id.length !== 20) {
+          throw new Error('Length should be 20.');
+        }
+
+        return id;
+      }
+
+      start(event) {
+
+        if (this.countJoinedUsers(this.joinedUsers) <= 1) {
+          this.$.toaster.show({
+            text: "Not enough players to start. Minimum 2 approved players is needed."
+          });
+          return;
+        }
+
+        let confirm = window.confirm("This will start the tournament and you will not be available to add more players. Are you sure you wish to start?");
+
+        if (!confirm) {
+          return;
+        }
+
+        this.$.query.setStoredValue(`/matchdays/${this.matchday.$key}/isStarted`, true);
+
+        for (let i = 0; i < this.joinedUsers.length; i++) {
+          for (let j = (i + 1); j < this.joinedUsers.length; j++) {
+
+            let fixtureId = this.generatePushId();
+
+            let uidHome = this.joinedUsers[i].$key;
+            let uidAway = this.joinedUsers[j].$key;
+
+            let defaultFixture = {
+              goalsHome: 0,
+              goalsAway: 0,
+              home: false,
+              away: false,
+              matchday: this.matchday.$key,
+              season: this.matchday.season
+            };
+
+            this.set(`fingData.${fixtureId}`, defaultFixture);
+            this.set(`fingData.${fixtureId}.home`, uidHome);
+            this.set(`fingData.${fixtureId}.away`, uidAway);
+          }
+        }
+
+        let fixtures = this.get('fingData');
+        Object.keys(fixtures).forEach((fixtureId) => {
+          let saveData = fixtures[fixtureId];
+          this.$.query.setStoredValue(`/fixtures/${fixtureId}`, saveData);
+          this.$.query.setStoredValue(`/users/${saveData.home}/fixtures/${fixtureId}`, true);
+          this.$.query.setStoredValue(`/users/${saveData.away}/fixtures/${fixtureId}`, true);
+          this.$.query.setStoredValue(`/matchdays/${this.matchday.$key}/fixtures/${fixtureId}`, true);
+        });
+      }
+    }
+
+    window.customElements.define(OfficeMatchdayApprove.is, OfficeMatchdayApprove);
+  </script>
+</dom-module>

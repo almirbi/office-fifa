@@ -1,0 +1,294 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Jan's Office FIFA">
+  <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+  <title>Jan's Office FIFA</title>
+  <meta name="description" content="Jan's Office FIFA">
+
+  <!--
+      The `<base>` tag below is present to support two advanced deployment options:
+      1) Differential serving. 2) Serving from a non-root path.
+
+      Instead of manually editing the `<base>` tag yourself, you should generally either:
+      a) Add a `basePath` property to the build configuration in your `polymer.json`.
+      b) Use the `--base-path` command-line option for `polymer build`.
+
+      Note: If you intend to serve from a non-root path, see [polymer-root-path] below.
+    -->
+  <base href="/">
+
+  <link rel="icon" href="images/favicon.ico">
+
+  <!-- See https://goo.gl/OOhYW5 -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- See https://goo.gl/qRE0vM -->
+  <meta name="theme-color" content="#212121">
+
+  <!-- Add to homescreen for Chrome on Android. Fallback for manifest.json -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="application-name" content="Jan's Office FIFA">
+
+  <!-- Add to homescreen for Safari on iOS -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Jan's Office FIFA">
+
+  <!-- Homescreen icons -->
+  <link rel="apple-touch-icon" href="images/manifest/icon-48x48.png">
+  <link rel="apple-touch-icon" sizes="72x72" href="images/manifest/icon-72x72.png">
+  <link rel="apple-touch-icon" sizes="96x96" href="images/manifest/icon-96x96.png">
+  <link rel="apple-touch-icon" sizes="144x144" href="images/manifest/icon-144x144.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="images/manifest/icon-192x192.png">
+
+  <!-- Tile icon for Windows 8 (144x144 + tile color) -->
+  <meta name="msapplication-TileImage" content="images/manifest/icon-144x144.png">
+  <meta name="msapplication-TileColor" content="#3f51b5">
+  <meta name="msapplication-tap-highlight" content="no">
+
+  <script>
+    /**
+    * [polymer-root-path]
+    *
+    * By default, we set `Polymer.rootPath` to the server root path (`/`).
+    * Leave this line unchanged if you intend to serve your app from the root
+    * path (e.g., with URLs like `my.domain/` and `my.domain/view1`).
+    *
+    * If you intend to serve your app from a non-root path (e.g., with URLs
+    * like `my.domain/my-app/` and `my.domain/my-app/view1`), edit this line
+    * to indicate the path from which you'll be serving, including leading
+    * and trailing slashes (e.g., `/my-app/`).
+    */
+    window.Polymer = { rootPath: '/' };
+
+    // Load and register pre-caching Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('service-worker.js', {
+          scope: Polymer.rootPath,
+        });
+      });
+    }
+  </script>
+
+  <!-- Load webcomponents-loader.js to check and load any polyfills your browser needs -->
+  <script src="bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+
+  <link rel="stylesheet" href='https://fonts.googleapis.com/css?family=Abril+Fatface' type="text/css">
+
+  <!-- Load your application shell -->
+  <link rel="import" href="src/office-fifa.html">
+
+  <!-- Add any global styles for body, document, etc. -->
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Roboto', 'Noto', sans-serif;
+      line-height: 1.5;
+      min-height: 100vh;
+      background-color: #eeeeee;
+    }
+
+    :host {
+      -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    }
+
+    app-header {
+      background-color: rgba(255, 255, 255, 0.95);
+      --app-header-shadow: {
+        box-shadow: inset 0px 5px 6px -3px rgba(0, 0, 0, 0.2);
+        height: 10px;
+        bottom: -10px;
+      }
+      ;
+    }
+
+    app-header:not([shadow]) {
+      border-bottom: 1px solid #ddd;
+    }
+
+    app-drawer {
+      --app-drawer-content-container: {
+        background-color: #f3f3f3;
+      }
+      ;
+    }
+
+    #mainToolbar {
+      height: 110px;
+    }
+
+    paper-icon-button {
+      color: #000;
+      --paper-icon-button-ink-color: #31f0ef;
+    }
+
+    .navItem paper-icon-button {
+      float: right;
+    }
+
+    .navItem.leftItem paper-icon-button {
+      float: none;
+    }
+
+    .navItem {
+      @apply --layout-self-start;
+      margin-top: 13px;
+      width: 88px;
+    }
+
+    .spacer {
+      @apply --layout;
+      @apply --layout-flex-auto;
+      @apply --layout-center-center;
+    }
+
+    .logo {
+      width: 120px;
+      height: 40px;
+      background-size: 100% 100%;
+    }
+
+    .leftItem [icon] {
+      display: none;
+    }
+
+    shrine-detail {
+      height: calc(100vh - 65px);
+    }
+
+    :host([page=detail]) #mainToolbar {
+      height: 64px;
+    }
+
+    :host([page=detail]) paper-tabs {
+      display: none;
+    }
+
+    :host([page=detail]) .leftItem [icon=arrow-back] {
+      display: block;
+    }
+
+    :host([page=detail]) .leftItem [icon=menu] {
+      display: none;
+    }
+
+    paper-tabs {
+      --paper-tabs-selection-bar-color: #31f0ef;
+      margin-left: -55px;
+      color: #31f0ef;
+      font-size: 13px;
+    }
+
+    paper-tab {
+      @apply --layout-flex-none;
+      padding: 0;
+      --paper-tab-ink: #31f0ef;
+    }
+
+    paper-tab a {
+      @apply --layout-horizontal;
+      @apply --layout-center-center;
+      text-decoration: none;
+      text-transform: uppercase;
+      color: #7c7c7c;
+      font-weight: 500;
+      padding: 0 20px;
+      height: 100%;
+    }
+
+    .list {
+      margin-left: 20px;
+      margin-right: 20px;
+    }
+
+    .list a {
+      display: block;
+      line-height: 40px;
+      text-decoration: none;
+      text-transform: uppercase;
+      color: #7c7c7c;
+    }
+
+    .list a.active {
+      color: black;
+      font-weight: bold;
+    }
+
+    .profileBar {
+      margin-bottom: 40px;
+    }
+
+    .profilePic {
+      border-radius: 50% 50%;
+    }
+
+    .profileName {
+      @apply --layout-flex;
+      margin-left: 20px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #0a3142;
+    }
+
+    [icon=settings] {
+      width: 35px;
+      height: 35px;
+      color: #0a3142;
+    }
+
+    /**
+       * Desktop small, tablet
+       */
+
+    @media (max-width: 1200px) {
+      .logo {
+        width: 89px;
+        height: 17px;
+      }
+      #mainToolbar {
+        height: 64px;
+      }
+      shrine-detail {
+        height: auto;
+      }
+    }
+
+    /**
+       * Phone
+       */
+
+    @media (max-width: 400px) {
+      .leftItem [icon=menu] {
+        display: block;
+      }
+      paper-tabs {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <office-fifa></office-fifa>
+  <noscript>
+    Please enable JavaScript to view this website.
+  </noscript>
+  <!-- Built with love using Polymer Starter Kit -->
+</body>
+
+</html>

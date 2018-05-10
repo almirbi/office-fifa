@@ -1,0 +1,119 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-query.html">
+<link rel="import" href="../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+
+<link rel="import" href="office-score-calculator.html">
+
+
+<dom-module id="office-matchday-scoreboard">
+  <template>
+    <custom-style>
+      <style is="custom-style">
+        .grid {
+          display: grid;
+          grid-template-columns: 55% 8% 8% 8% 8% 8%;
+          grid-gap: 1%;
+          padding: 4px 0;
+        }
+
+        .cell.header {
+          color: var(--primary-text-color);
+        }
+
+        .cell {
+          color: white;
+          text-align: center;
+        }
+
+        .cell.name {
+          text-align: left;
+        }
+
+        img {
+          width: 20px;
+          border-radius: 100%;
+        }
+      </style>
+    </custom-style>
+    <iron-collapse class="matchday--active" opened="[[opened]]">
+      <div class="grid">
+        <div class="cell name header">Player</div>
+        <div class="cell header">W</div>
+        <div class="cell header">D</div>
+        <div class="cell header">L</div>
+        <div class="cell header">G</div>
+        <div class="cell header">P</div>
+      </div>
+
+      <office-score-calculator fixtures="[[fixtures]]" scores-sorted-mid="{{scoresSortedMid}}"></office-score-calculator>
+
+      
+      <template is="dom-repeat" items="[[scoresSortedMid]]" as="player">
+        <div class="grid">
+          <div class="cell name">
+            <img src="[[player.userObject.photoURL]]">
+            <span class="player">[[player.userObject.displayName]]</span>
+          </div>
+          <div class="cell">
+            <span class="player">[[player.win]]</span>
+          </div>
+
+          <div class="cell">
+            <span class="points">[[player.draw]]</span>
+          </div>
+          <div class="cell">
+            <span class="points">[[player.loss]]</span>
+          </div>
+          <div class="cell">
+            <span class="points">[[player.goalDifference]]</span>
+          </div>
+          <div class="cell">
+            <span class="points">[[player.points]]</span>
+          </div>
+        </div>
+
+      </template>
+
+    </iron-collapse>
+  </template>
+
+  <script>
+    class OfficeMatchdayScoreboard extends Polymer.Element {
+      static get is() { return 'office-matchday-scoreboard'; }
+
+      static get properties() {
+        return {
+          opened: {
+            type: Boolean,
+            value: true
+          },
+          scoresSortedMid: {
+            type: Array
+          },
+          fixtures: {
+            type: Array
+          }
+        }
+      }
+
+
+    }
+
+    window.customElements.define(OfficeMatchdayScoreboard.is, OfficeMatchdayScoreboard);
+  </script>
+</dom-module>

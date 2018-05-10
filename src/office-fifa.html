@@ -1,0 +1,624 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/app-route/app-location.html">
+<link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-app.html">
+
+<link rel="import" href="../bower_components/polymerfire/firebase-auth.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-database-script.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-storage-script.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-messaging-script.html">
+
+<link rel="import" href="../bower_components/polymerfire/firebase-query.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-document.html">
+
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+
+<link rel="import" href="../bower_components/paper-progress/paper-progress.html">
+<link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../bower_components/app-layout/app-layout.html">
+<link rel="import" href="../bower_components/app-layout/app-scroll-effects/app-scroll-effects.html">
+
+<script src="../bower_components/web-animations-js/web-animations.min.js"></script>
+
+
+
+<link rel="import" href="office-profile.html">
+<link rel="import" href="office-fifa-config.html">
+<link rel="import" href="office-matchdays.html">
+<link rel="import" href="office-seasons.html">
+<!-- <link rel="lazy-import" href="office-view404.html"> -->
+
+<dom-module id="office-fifa">
+  <template>
+    <style>
+      * {
+        outline: none;
+      }
+
+      :host {
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+        --dark-primary-color: #C2185B;
+        --default-primary-color: #E91E63;
+        --light-primary-color: #F8BBD0;
+        --text-primary-color: #FFFFFF;
+        --accent-color: #03A9F4;
+        --primary-background-color: #F8BBD0;
+        --primary-text-color: #212121;
+        --secondary-text-color: #757575;
+        --disabled-text-color: #BDBDBD;
+        --divider-color: #BDBDBD;
+
+        --material-body-text-color: var(--text-primary-color);
+        --material-disabled-text-color: var(--text-primary-color);
+        --material-primary-contrast-color: var(--text-primary-color);
+        ---material-text-field-input-line-background-color: var(--text-primary-color);
+        ---material-text-field-input-line-opacity: 1;
+        ---material-date-picker-overlay-toolbar-background-color: var(--default-primary-color);
+
+        --material-primary-color: var(--accent-color);
+        --material-secondary-text-color: var(--text-primary-color);
+        --paper-toast-background-color: var(--dark-primary-color);
+        --paper-toast-color: var(--text-primary-color);
+        --iron-icon-fill-color: var(--text-primary-color);
+        --paper-listbox-color: var(--material-body-text-color);
+
+        /* Components */
+        /* paper-drawer-panel */
+        --drawer-menu-color: var(--text-primary-color);
+        --input-background: var(--text-primary-color);
+        --drawer-border-color: 1px solid #ccc;
+        --drawer-toolbar-border-color: 1px solid rgba(0, 0, 0, 0.22);
+        --datetime-background: var(--default-primary-color);
+        --datetime-selected-background: var(--accent-color);
+        --datetime-color: var(--text-primary-color);
+        /* paper-menu */
+        --paper-menu-background-color: var(--text-primary-color);
+        --menu-link-color: #111111;
+
+
+
+        /* paper-input */
+        --paper-input-container-color: rgba(255, 255, 255, 0.64);
+        --paper-input-container-focus-color: rgba(255, 255, 255, 1);
+        --paper-input-container-input-color: #fff;
+      }
+
+      paper-progress.blue {
+        --paper-progress-active-color: var(--accent-color);
+        --paper-progress-secondary-color: var(--paper-light-blue-100);
+        width: 100%;
+      }
+
+      app-header {
+        background-color: var(--dark-primary-color);
+        --app-header-shadow: {
+          box-shadow: inset 0px 5px 6px -3px rgba(0, 0, 0, 0.2);
+          height: 10px;
+          bottom: -10px;
+        }
+        ;
+      }
+
+      app-drawer {
+        --app-drawer-content-container: {
+          background-color: var(--primary-background-color);
+        }
+        ;
+      }
+
+      #mainToolbar {
+        height: 110px;
+      }
+
+      paper-icon-button {
+        color: var(--text-primary-color);
+        --paper-icon-button-ink-color: #31f0ef;
+      }
+
+      .navItem paper-icon-button {
+        float: right;
+      }
+
+      .navItem.leftItem paper-icon-button {
+        float: none;
+      }
+
+      .signOut {
+        margin: 0 auto;
+        text-align: center;
+        display: block;
+        margin-top: 30px;
+      }
+
+      .navItem {
+        @apply --layout-self-start;
+        margin-top: 13px;
+        width: 40px;
+      }
+
+      .spacer {
+        @apply --layout;
+        @apply --layout-flex-auto;
+        @apply --layout-center-center;
+      }
+
+      .logo {
+        width: 120px;
+        height: 40px;
+        background-size: 100% 100%;
+      }
+
+      .leftItem [icon] {
+        display: none;
+      }
+
+      shrine-detail {
+        height: calc(100vh - 65px);
+      }
+
+      :host([page=detail]) #mainToolbar {
+        height: 64px;
+      }
+
+      :host([page=detail]) paper-tabs {
+        display: none;
+      }
+
+      :host([page=detail]) .leftItem [icon=arrow-back] {
+        display: block;
+      }
+
+      :host([page=detail]) .leftItem [icon=menu] {
+        display: none;
+      }
+
+      span.title {
+        font-size: 1em;
+        font-weight: 200;
+        color: var(--text-primary-color);
+      }
+
+      paper-card {
+        padding: 10px;
+        width: 100%;
+        text-align: center;
+        margin: 5px 0;
+      }
+
+
+      paper-button.custom {
+        --paper-button-ink-color: var(--accent-color);
+        /* These could also be individually defined for each of the
+          specific css classes, but we'll just do it once as an example */
+        --paper-button-flat-keyboard-focus: {
+          background-color: var(--paper-pink-a200);
+          color: var(--text-primary-color) !important;
+        }
+      }
+
+      paper-button.custom:hover {
+        background-color: var(--paper-indigo-100);
+      }
+
+      paper-button.pink {
+        color: var(--text-primary-color);
+        background-color: var(--accent-color);
+      }
+
+      paper-button.pink[disabled] {
+        background: #eaeaea;
+        color: #a8a8a8;
+      }
+
+      paper-button {
+        max-width: 100%;
+        margin: 20px 0;
+        display: block;
+        width: 280px;
+        margin: 40px auto;
+      }
+
+      paper-button.signOut {
+
+        margin: 20px 0;
+        display: block;
+        width: 280px;
+        margin: 0 auto;
+      }
+
+      paper-tabs {
+        --paper-tabs-selection-bar-color: var(--accent-color);
+        /* background-color: var(--light-primary-color); */
+        background-color: var(--default-primary-color);
+        margin-left: -55px;
+        color: var(--accent-color);
+        font-size: 13px;
+      }
+
+      paper-tab {
+        @apply --layout-flex-none;
+        padding: 0;
+        --paper-tab-ink: var(--accent-color);
+      }
+
+      paper-tab a {
+        @apply --layout-horizontal;
+        @apply --layout-center-center;
+        text-decoration: none;
+        text-transform: uppercase;
+        color: var(--text-primary-color);
+        font-weight: 500;
+        padding: 0 20px;
+        height: 100%;
+      }
+
+      paper-menu-button {
+        padding: 0;
+      }
+
+      .list {
+        margin-left: 20px;
+        margin-right: 20px;
+      }
+
+      .list a {
+        display: block;
+        line-height: 40px;
+        text-decoration: none;
+        text-transform: uppercase;
+        color: var(--text-primary-color);
+      }
+
+      .list a.active {
+        color: black;
+        font-weight: bold;
+      }
+
+      .profileBar {
+        margin-bottom: 40px;
+      }
+
+      .profilePic {
+        border-radius: 50% 50%;
+      }
+
+      .profileName {
+        @apply --layout-flex;
+        margin-left: 20px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #0a3142;
+      }
+
+      [icon=settings] {
+        width: 35px;
+        height: 35px;
+        color: #0a3142;
+      }
+
+      .content {
+        padding: 10px;
+      }
+
+      iron-pages {
+        position: relative;
+      }
+
+      /**
+       * Desktop small, tablet
+       */
+
+      @media (max-width: 1200px) {
+        .logo {
+          width: 89px;
+          height: 17px;
+        }
+        #mainToolbar {
+          height: 64px;
+        }
+        shrine-detail {
+          height: auto;
+        }
+      }
+
+      /**
+       * Phone
+       */
+
+      @media (max-width: 400px) {
+        .leftItem [icon=menu] {
+          display: block;
+        }
+        paper-tabs {
+          display: none;
+        }
+      }
+    </style>
+
+    <app-location route="{{route}}" use-hash-as-path></app-location>
+    <app-route route="{{route}}" pattern=":section" data="{{sectionData}}"></app-route>
+
+    <iron-media-query query="max-width: 400px" query-matches="{{smallScreen}}"></iron-media-query>
+
+    <office-fifa-config firebase="{{firebaseConfig}}"></office-fifa-config>
+
+    <firebase-app name="office-fifa" api-key="[[firebaseConfig.apiKey]]" auth-domain="[[firebaseConfig.authDomain]]" storage-bucket="[[firebaseConfig.storageBucket]]"
+      messaging-sender-id="[[firebaseConfig.messagingSenderId]]" project-id="[[firebaseConfig.projectId]]" database-url="[[firebaseConfig.databaseUrl]]">
+    </firebase-app>
+
+    <firebase-auth id="auth" app-name="office-fifa" status-known="{{statusKnown}}" signed-in="{{isSignedIn}}" user="{{userFirebase}}"
+      provider="google" on-error="handleError">
+    </firebase-auth>
+    <firebase-document app-name="office-fifa" path="users/[[user.uid]]/isAdmin" data="{{isAdmin}}"></firebase-document>
+    <firebase-query app-name="office-fifa" path="users/[[user.uid]]/fixtures" data="{{userFixtures}}"></firebase-query>
+    <firebase-document id="query" app-name="office-fifa"></firebase-document>
+
+    <app-drawer-layout drawer-width="288px" force-narrow>
+      <app-drawer slot="drawer" id="drawer" swipe-open="[[smallScreen]]">
+        <template is="dom-if" if="[[smallScreen]]">
+          <app-toolbar hidden$="[[!isSignedIn]]" class="profileBar">
+            <img class="profilePic" src="[[user.photoURL]]" width="30" height="30">
+            <div class="profileName">[[user.displayName]]</div>
+          </app-toolbar>
+          <div class="list">
+            <template is="dom-repeat" items="[[sections]]" as="section" initial-count="1">
+              <a href="#[[section]]" class$="[[_getSectionClass(index, selectedTab)]]">[[section]]</a>
+            </template>
+
+          </div>
+        </template>
+      </app-drawer>
+
+      <app-header-layout id="headerLayout">
+        <!-- main header -->
+        <app-header slot="header" effects="waterfall" fixed="[[smallScreen]]" condenses="[[!smallScreen]]" reveals="[[!smallScreen]]">
+          <app-toolbar id="mainToolbar">
+            <div class="navItem leftItem">
+              <paper-icon-button hidden$="[[!isSignedIn]]" icon="menu" drawer-toggle alt="Toogle navigation menu"></paper-icon-button>
+              <a href="#[[sectionData.section]]" tabindex="-1">
+                <paper-icon-button icon="arrow-back" alt="Back to the home"></paper-icon-button>
+              </a>
+            </div>
+            <div class="spacer">
+              <span class="title">Jan's Office FIFA</span>
+            </div>
+            <div class="navItem">
+              <paper-icon-button hidden$="[[!isSignedIn]]" on-click="signOut" icon="exit-to-app" slot="dropdown-trigger" alt="menu"></paper-icon-button>
+            </div>
+          </app-toolbar>
+          <template is="dom-if" if="[[_shouldShowTabs(smallScreen)]]">
+            <paper-tabs selected="[[selectedTab]]" scrollable sticky$="[[_shouldShowTabs(smallScreen)]]">
+              <template is="dom-repeat" items="[[sections]]" as="section">
+                <paper-tab>
+                  <a href="#[[section]]">[[section]]</a>
+                </paper-tab>
+              </template>
+            </paper-tabs>
+          </template>
+          <paper-progress hidden$="[[statusKnown]]" indeterminate class="blue"></paper-progress>
+        </app-header>
+
+        <template is="dom-if" if="[[statusKnown]]">
+
+          <div class="content">
+
+            <iron-pages selected="[[page]]" attr-for-selected="name">
+
+              <div name="matchdays">
+
+                <template is="dom-if" if="[[!isSignedIn]]">
+                  <paper-card>
+                    <paper-button raised class="custom pink" on-click="signInWithGoogle">Sign In With Google</paper-button>
+                  </paper-card>
+                </template>
+
+                <template is="dom-if" if="[[isSignedIn]]">
+                  <office-profile user="[[user]]"></office-profile>
+
+                  <h1>Active</h1>
+                  <firebase-query app-name="office-fifa" path="/matchdays" equal-to="active" order-by-child="status" data="{{activeMatchdays}}"></firebase-query>
+                  <office-matchdays user="[[user]]" matchdays="{{activeMatchdays}}"></office-matchdays>
+
+                  <paper-fab class$="[[_addButtonClass(isOpen)]]" on-click="toggle" icon="add" title="add"></paper-fab>
+                  <iron-collapse id="collapseAddMatchday" opened="{{isOpen}}">
+                    <office-matchday-add on-matchday-added="closeCard"></office-matchday-add>
+                  </iron-collapse>
+
+
+                  <h1>History</h1>
+                  <firebase-query app-name="office-fifa" path="/matchdays" equal-to="complete" order-by-child="status" data="{{completeMatchdays}}"></firebase-query>
+                  <office-matchdays user="[[user]]" matchdays="{{completeMatchdays}}"></office-matchdays>
+
+                  <firebase-query app-name="office-fifa" path="/seasons" equal-to="active" order-by-child="status" data="{{activeSeasons}}"></firebase-query>
+                  <template is="dom-repeat" items="[[activeSeasons]]" as="season">
+                    <office-seasons season="[[season]]" user="[[user]]"></office-seasons>
+                  </template>
+                </template>
+
+              </div>
+
+              <div name="seasons">
+
+              </div>
+
+            </iron-pages>
+          </div>
+        </template>
+
+      </app-header-layout>
+    </app-drawer-layout>
+  </template>
+
+  <script>
+    class OfficeFifa extends Polymer.Element {
+      static get is() { return 'office-fifa'; }
+
+      static get properties() {
+        return {
+          page: String,
+          userFirebase: {
+            type: Object,
+          },
+          isAdmin: {
+            type: Boolean,
+            value: false
+          },
+          userInternal: Object,
+          userFixtures: {
+            type: Array
+          },
+          user: {
+            type: Object,
+            computed: '_getUser(userFirebase, isAdmin, userFixtures, userFirebase.*)'
+          },
+          sections: {
+            type: Array,
+            value: [],
+            notify: true
+          },
+          selectedTab: {
+            type: Number,
+            computed: '_computeSelectedTab(page, sections)'
+          },
+          route: {
+            type: Object
+          },
+          seasons: {
+            type: Object,
+            notify: true
+          },
+          sectionData: Object,
+          isSignedIn: {
+            type: Boolean
+          },
+          activeMatchdays: Array
+        };
+      }
+
+      _addButtonClass() {
+        if (this.shadowRoot.querySelector("#collapseAddMatchday")) {
+          return this.shadowRoot.querySelector("#collapseAddMatchday").opened ? "open" : "closed";
+        }
+      }
+
+      closeCard() {
+        if (this.shadowRoot.querySelector("#collapseAddMatchday") && this.shadowRoot.querySelector("#collapseAddMatchday").opened) {
+          this.shadowRoot.querySelector("#collapseAddMatchday").toggle();
+        }
+      }
+
+      toggle() {
+        if (!this.statusKnown) {
+          return;
+        }
+        this.shadowRoot.querySelector("#collapseAddMatchday").toggle();
+        setTimeout(() => {
+          this.shadowRoot.querySelector("#collapseAddMatchday").scrollIntoView({ behavior: "smooth", block: "start", inline: "start" });
+          // window.scrollBy(0, -80);
+          // Polymer.AppLayout.scroll({ top: 0, behavior: 'silent' });
+        }, 300);
+      }
+
+      _getUser(userFirebase, isAdmin, userFixtures) {
+        if (userFirebase) {
+          this.set("user.isAdmin", typeof isAdmin === "boolean" ? isAdmin : false);
+          userFirebase.fixtures = userFixtures;
+          this.notifyPath("user.fixtures");
+
+          this.$.query.setStoredValue(`/users/${userFirebase.uid}/photoURL`, userFirebase.photoURL);
+          this.$.query.setStoredValue(`/users/${userFirebase.uid}/displayName`, userFirebase.displayName);
+        }
+
+        return userFirebase;
+      }
+
+      static get observers() {
+        return [
+          '_hashDidChange(route.path)'
+        ];
+      }
+
+      static getSections() {
+        return ['matchdays'];
+      }
+
+      _userChanged(newValue) {
+        if (this.user) {
+          this.push('sections', 'seasons');
+          this.notifyPath('sections');
+        } else {
+          this.sections = OfficeFifa.getSections();
+        }
+      }
+
+      signInWithGoogle() {
+        this._signInWithSocial('google');
+      }
+
+      signInWithFacebook() {
+        this._signInWithSocial('facebook');
+      }
+
+      _signInWithSocial(provider) {
+        this.error = null;
+        this.auth = this.$.auth;
+        this.$.auth.signInWithPopup()
+          .catch((error) => { console.log(error) });
+      };
+
+      signOut() {
+        this.$.auth.signOut();
+        this.set('route.path', 'matchdays');
+        this._resetPage();
+      }
+
+      _resetPage() {
+        Polymer.AppLayout.scroll({ top: 0, behavior: 'silent' });
+        this.$.headerLayout.resetLayout();
+        this.$.drawer.close();
+      }
+
+      _computeSelectedTab(page, sections) {
+        if (this.route && sections && this.route.path !== "") {
+          return sections.indexOf(this.route.path);
+        } else {
+          return 0;
+        }
+      }
+
+      _hashDidChange(newValue) {
+        this.page = newValue === '' ? 'matchdays' : newValue;
+        this._resetPage();
+      }
+
+      _equal(a, b) {
+        return a === b;
+      }
+
+      _getSectionClass(index, selectedTab) {
+        return index === selectedTab ? 'active' : '';
+      }
+
+      _shouldShowTabs(smallScreen) {
+        return !smallScreen;
+      }
+    }
+
+    window.customElements.define(OfficeFifa.is, OfficeFifa);
+  </script>
+</dom-module>

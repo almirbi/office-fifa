@@ -1,0 +1,23 @@
+{
+  "entrypoint": "index.html",
+  "shell": "src/office-fifa.html",
+  "fragments": [
+    "src/office-view404.html"
+  ],
+  "sources": [
+    "src/**/*",
+    "images/**/*"
+  ],
+  "extraDependencies": [
+    "manifest.json",
+    "bower_components/webcomponentsjs/*.js"
+  ],
+  "lint": {
+    "rules": ["polymer-2"]
+  },
+  "builds": [
+    {
+      "preset": "es5-bundled"
+    }
+  ]
+}

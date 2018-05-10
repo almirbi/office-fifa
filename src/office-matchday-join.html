@@ -1,0 +1,149 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-query.html">
+<link rel="import" href="../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-toast/paper-toast.html">
+
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+
+
+<dom-module id="office-matchday-join">
+  <template>
+    <custom-style>
+      <style is="custom-style">
+        paper-button.custom {
+          --paper-button-ink-color: var(--accent-color);
+          /* These could also be individually defined for each of the
+            specific css classes, but we'll just do it once as an example */
+          --paper-button-flat-keyboard-focus: {
+            background-color: var(--paper-pink-a200);
+            color: var(--text-primary-color) !important;
+          }
+        }
+
+        paper-button.custom:hover {
+          background-color: var(--paper-indigo-100);
+        }
+
+        paper-button.pink {
+          color: var(--text-primary-color);
+          background: var(--accent-color);
+        }
+
+        paper-button.pink {
+          color: var(--text-primary-color);
+          background: var(--accent-color);
+        }
+
+        paper-button.disabled {
+          background: var(--divider-color);
+          color: var(--text-primary-color);
+        }
+
+        paper-button {
+          max-width: 100%;
+          margin: 20px 0;
+          width: 200px;
+        }
+
+        paper-button img {
+          max-width: 40px;
+          border-radius: 100%;
+          margin: 10px 0 10px 10px;
+        }
+      </style>
+    </custom-style>
+
+    <firebase-document app-name="office-fifa" on-data-changed="isJoinedDataChanged" path="/matchdays/[[matchday.$key]]/users/[[user.uid]]"
+      data="{{isJoinedFb}}">
+    </firebase-document>
+
+    <firebase-document app-name="office-fifa" id="applications">
+    </firebase-document>
+    <template is="dom-if" if="[[!matchday.isStarted]]">
+
+
+      <iron-collapse opened="[[!isJoined]]" id="joinCollapse">
+        <paper-button disabled$="[[isJoined]]" id="join" on-click="join" raised class="custom pink">
+          <span>Join as</span>
+          <img src="[[user.photoURL]]">
+        </paper-button>
+      </iron-collapse>
+
+      <iron-collapse opened="[[isJoined]]" id="removeCollapse">
+        <paper-button id="remove" on-click="remove" raised class="custom disabled">
+          <span>Remove Me</span>
+          <img src="[[user.photoURL]]">
+        </paper-button>
+      </iron-collapse>
+
+      <paper-toast id="toast" text="Succesfully joined matchday."></paper-toast>
+    </template>
+  </template>
+
+  <script>
+    class OfficeMatchdayJoin extends Polymer.Element {
+      static get is() { return 'office-matchday-join'; }
+
+      static get properties() {
+        return {
+          matchday: {
+            type: Object
+          },
+          isExpanded: {
+            type: Boolean,
+            value: false
+          },
+          userId: String,
+          user: {
+            type: Object
+          },
+          isJoined: {
+            type: Boolean,
+            computed: 'isJoinedDataChanged(isJoinedFb)'
+          },
+          isJoinedFb: {
+            type: Boolean
+          }
+        }
+      }
+
+      isJoinedDataChanged(change) {
+        return (typeof change === 'boolean') ? change : false;
+      }
+
+      static get observers() {
+        return ['dataReceived(currentApplication.approved, user.uid)']
+      }
+
+      dataReceived(approved, uid) {
+        if (typeof approved === "boolean" && typeof uid === "string") {
+          this.notifyPath('path');
+        }
+      }
+
+      join() {
+        this.$.applications.setStoredValue(`/matchdays/${this.matchday.$key}/users/${this.user.uid}`, true).then(() => {
+
+        }).catch(err => { console.log(err) });
+      }
+      remove() {
+        this.$.applications.setStoredValue(`/matchdays/${this.matchday.$key}/users/${this.user.uid}`, false).then(() => {
+        }).catch(err => { console.log(err) });
+      }
+    }
+
+    window.customElements.define(OfficeMatchdayJoin.is, OfficeMatchdayJoin);
+  </script>
+</dom-module>

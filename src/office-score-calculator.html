@@ -1,0 +1,144 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+
+
+<link rel="import" href="../bower_components/polymerfire/firebase-query.html">
+
+
+<dom-module id="office-score-calculator">
+    <template>
+        <style>
+            :host {
+                display: block
+            }
+        </style>
+        <firebase-query app-name="office-fifa" path="/users" data="{{users}}"></firebase-query>
+
+
+    </template>
+
+    <script>
+        /**
+         * `office-score-calculator` Calculates the ranking based on a set of fixtures
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class OfficeScoreCalculator extends Polymer.Element {
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'office-score-calculator';
+            }
+
+            /**
+             * Object describing property-related metadata used by Polymer features
+             */
+            static get properties() {
+                return {
+                    fixtures: {
+                        type: Object
+                    },
+                    scores: {
+                        type: {},
+                        computed: '_computeScores(fixtures, fixtures.*, users.*)'
+                    },
+                    scoresSortedMid: {
+                        type: Array,
+                        computed: 'sortScores(scores, users.*)',
+                        notify: true
+                    },
+                    users: {
+                        type: Object
+                    }
+                };
+            }
+
+            sortScores(scores) {
+                let result = [];
+                if (scores && this.users) {
+                    Object.keys(scores).forEach((userId) => {
+                        scores[userId].userObject = this.users.filter(user => user.$key === userId)[0];
+                        result.push(scores[userId]);
+                    });
+                }
+                result.sort(this.compare);
+                return result;
+            }
+
+            compare(b, a) {
+                return a.points === b.points ? 0 : (a.points > b.points ? 1 : -1);
+            }
+
+            _computeScores(fixtures) {
+                if (!fixtures) {
+                    return {};
+                }
+
+                console.log("Fixtures scoreboard", fixtures);
+
+                let userScores = {};
+                fixtures.forEach((fixture) => {
+                    const goalsHome = parseInt(fixture.goalsHome, 10),
+                        goalsAway = parseInt(fixture.goalsAway, 10);
+
+
+
+                    if (!userScores[fixture.home]) {
+                        userScores[fixture.home] = {
+                            user: fixture.home,
+                            points: 0,
+                            goalDifference: 0,
+                            win: 0,
+                            loss: 0,
+                            draw: 0
+                        };
+                    }
+
+                    if (!userScores[fixture.away]) {
+                        userScores[fixture.away] = {
+                            user: fixture.away,
+                            points: 0,
+                            goalDifference: 0,
+                            win: 0,
+                            loss: 0,
+                            draw: 0
+                        };
+                    }
+
+                    if (isNaN(goalsHome) || isNaN(goalsAway)) {
+                        return;
+                    };
+
+                    let isHomeWin = goalsHome > goalsAway;
+                    let isAwayWin = goalsHome < goalsAway;
+                    let isDraw = goalsHome === goalsAway;
+
+                    userScores[fixture.home].points += (isHomeWin ? 3 : 0);
+                    userScores[fixture.home].points += (isDraw ? 1 : 0);
+                    userScores[fixture.home].goalDifference += goalsHome;
+                    userScores[fixture.home].goalDifference -= goalsAway;
+                    userScores[fixture.home].win += (isHomeWin ? 1 : 0);
+                    userScores[fixture.home].draw += (isDraw ? 1 : 0);
+                    userScores[fixture.home].loss += (isAwayWin ? 1 : 0);
+
+                    userScores[fixture.away].points += (isAwayWin ? 3 : 0);
+                    userScores[fixture.away].points += (isDraw ? 1 : 0);
+                    userScores[fixture.away].goalDifference += goalsAway;
+                    userScores[fixture.away].goalDifference -= goalsHome;
+                    userScores[fixture.away].win += (isAwayWin ? 1 : 0);
+                    userScores[fixture.away].draw += (isDraw ? 1 : 0);
+                    userScores[fixture.away].loss += (isHomeWin ? 1 : 0);
+                });
+
+                console.log("Scores: ", userScores);
+                return userScores;
+            }
+
+        }
+
+        window.customElements.define(OfficeScoreCalculator.is, OfficeScoreCalculator);
+    </script>
+</dom-module>

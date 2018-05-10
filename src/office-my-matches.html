@@ -1,0 +1,98 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-query.html">
+<link rel="import" href="../bower_components/paper-card/paper-card.html">
+
+<link rel="import" href="office-matchday-scoreboard.html">
+<link rel="import" href="office-my-match.html">
+
+<dom-module id="office-my-matches">
+  <template>
+    <style>
+      :host {
+        display: block
+      }
+
+      .vs {
+        display: inline-block;
+        height: 24px;
+      }
+
+      office-my-match-user {
+        max-width: 150px;
+        overflow: hidden
+      }
+
+      office-my-match-user.left {
+        float: left;
+      }
+
+      office-my-match-user.right {
+        float: right;
+      }
+
+      paper-icon-button {
+        float: right;
+      }
+    </style>
+    <iron-collapse class="matchday--active" opened="[[matchday.isStarted]]">
+      <template is="dom-repeat" items="[[fixtures]]">
+        <office-my-match fixture-id="[[item]]"></office-my-match>
+      </template>
+    </iron-collapse>
+
+  </template>
+
+  <script>
+    class OfficeMyMatches extends Polymer.Element {
+      static get is() { return 'office-my-matches'; }
+
+      static get properties() {
+        return {
+          user: {
+            type: Object
+          },
+          matchday: {
+            type: Object
+          },
+          userFirebase: {
+            type: Object
+          },
+          fixtures: {
+            type: Array,
+            computed: 'getFixtures(matchday.fixtures, user.fixtures)'
+          }
+        }
+      }
+
+      getFixtures(matchdayFixtures, userFixtures) {
+        if (!matchdayFixtures || !userFixtures) {
+          return [];
+        }
+        let result = [];
+        Object.keys(matchdayFixtures).forEach((fixtureId) => {
+          userFixtures.forEach((fix) => {
+            if (fix.$key === fixtureId) {
+              result.push(fixtureId);
+            }
+          })
+        });
+        return result;
+      }
+
+
+    }
+
+    window.customElements.define(OfficeMyMatches.is, OfficeMyMatches);
+  </script>
+</dom-module>

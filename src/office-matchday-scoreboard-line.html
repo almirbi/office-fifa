@@ -1,0 +1,82 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-document.html">
+
+<dom-module id="office-matchday-scoreboard-line">
+    <template>
+        <style>
+            :host {
+                display: block
+            }
+
+
+
+            .grid {
+                display: grid;
+                grid-template-columns: 55% 8% 8% 8% 8% 8%;
+                grid-gap: 1%;
+            }
+
+            .cell {
+                color: #fff;
+            }
+
+            .cell.name {
+                text-align: left;
+            }
+        </style>
+
+
+
+    </template>
+
+    <script>
+        /**
+         * `office-matchday-scoreboard-line` Description
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class OfficeMatchdayScoreboardLine extends Polymer.Element {
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'office-matchday-scoreboard-line';
+            }
+
+            /**
+             * Object describing property-related metadata used by Polymer features
+             */
+            static get properties() {
+                return {
+                    player: Object
+                };
+            }
+
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            constructor() {
+                super();
+            }
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            ready() {
+                super.ready();
+
+                Polymer.RenderStatus.afterNextRender(this, function () {
+
+                });
+            }
+
+        }
+
+        window.customElements.define(OfficeMatchdayScoreboardLine.is, OfficeMatchdayScoreboardLine);
+    </script>
+</dom-module>

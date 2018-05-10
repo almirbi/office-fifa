@@ -1,0 +1,96 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-styles/color.html">
+<link rel="import" href="../bower_components/vaadin-material-theme/vaadin-date-picker.html">
+<link rel="import" href="../bower_components/vaadin-date-picker/vaadin-date-picker.html">
+
+<dom-module id="office-season-add">
+  <template>
+    <custom-style>
+      <style is="custom-style">
+        :host {
+          height: 100%;
+          padding: 10px;
+          display: block;
+        }
+
+        h1 {
+          text-align: center;
+        }
+
+        .title {
+          font-size: 2em;
+          font-weight: 200;
+          margin: 0 auto;
+          display: block;
+        }
+      </style>
+    </custom-style>
+
+    <firebase-document id="seasonsDocument" app-name="office-fifa" data="{{season}}">
+    </firebase-document>
+    <firebase-document id="seasons" app-name="office-fifa" path="/seasons" data="{{seasons}}">
+    </firebase-document>
+    <span class="title">[[name]]</span>
+
+    <paper-input label="Season name" value="{{name}}"></paper-input>
+    <vaadin-date-picker id="from" label="Start date" value="1980-08-14" placeholder="Pick a date"></vaadin-date-picker>
+    <vaadin-date-picker id="to" label="End date"></vaadin-date-picker>
+    <paper-button on-click="create" raised class="custom pink">Create</paper-button>
+  </template>
+
+  <script>
+    class OfficeSeasonAdd extends Polymer.Element {
+      static get is() { return 'office-season-add'; }
+
+      static get properties() {
+        return {
+          season: {
+            type: Object
+          },
+          seasons: {
+            type: Object,
+            observer: 'seasonsChanged'
+          },
+          name: String
+        }
+      }
+
+      seasonsChanged(newValue) {
+        if (newValue) {
+          this.name = 'Season ' + (Object.keys(newValue).length + 1);
+        }
+      }
+
+      create() {
+
+        this.set('season', {
+          name: this.name,
+          from: this.$.from.value,
+          to: this.$.to.value
+        });
+        this.$.seasonsDocument.saveValue('/seasons').then(() => {
+          this.dispatchEvent(new CustomEvent('season-added'));
+        });
+
+      }
+    }
+
+    window.customElements.define(OfficeSeasonAdd.is, OfficeSeasonAdd);
+  </script>
+</dom-module>

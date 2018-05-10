@@ -1,0 +1,92 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+
+<link rel="import" href="../bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
+
+<dom-module id="office-matchday-approve-user">
+  <template>
+    <style>
+      :host {
+        display: block;
+        text-align: center;
+        outline: none;
+      }
+
+      span.name__wrapper {
+        display: flex;
+        text-align: left;
+        height: 40px;
+      }
+
+      span.name__wrapper span {
+        height: 20px;
+        flex-grow: 1;
+        color: var(--text-primary-color);
+        align-self: center;
+      }
+
+      .mini_icon {
+        width: 35px;
+        height: 35px;
+        border-radius: 100%;
+        margin-right: 10px;
+        color: var(--text-primary-color);
+        overflow: hidden;
+        display: flex;
+        align-self: center;
+      }
+
+      .mini_icon img {
+        width: 100%;
+        align-self: center;
+      }
+
+      paper-icon-button {
+        align-self: center;
+      }
+    </style>
+
+    <firebase-document app-name="office-fifa" path="/users/[[userId]]" data="{{user}}">
+    </firebase-document>
+    <firebase-document app-name="office-fifa" id="removeUser">
+    </firebase-document>
+
+    <span class="name__wrapper">
+      <div class="mini_icon">
+        <img src="[[user.photoURL]]">
+      </div>
+      <span>[[user.displayName]]</span>
+      <template is="dom-if" if="[[currentUser.isAdmin]]">
+        <paper-icon-button icon="close" on-click="removeUser"></paper-icon-button>
+      </template>
+
+    </span>
+
+  </template>
+
+  <script>
+
+    class OfficeMatchdayApproveUser extends Polymer.Element {
+
+      static get is() {
+        return 'office-matchday-approve-user';
+      }
+
+      static get properties() {
+        return {
+          userId: Object,
+          isApproved: Boolean,
+          matchday: Object,
+          currentUser: Object
+        };
+      }
+
+      removeUser() {
+        this.$.removeUser.setStoredValue(`/matchdays/${this.matchday.$key}/users/${this.userId}`, false);
+      }
+    }
+
+    window.customElements.define(OfficeMatchdayApproveUser.is, OfficeMatchdayApproveUser);
+  </script>
+</dom-module>

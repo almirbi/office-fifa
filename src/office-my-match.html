@@ -1,0 +1,147 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-query.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-document.html">
+
+
+<link rel="import" href="../bower_components/material-value-chooser/material-value-chooser.html">
+
+
+<dom-module id="office-my-match">
+  <template>
+    <style>
+      :host {
+        display: block;
+        margin: 20px 0;
+      }
+
+      img {
+        width: 24px;
+        height: 24px;
+        border-radius: 100%;
+        margin: 0 5px;
+        align-self: center;
+      }
+
+
+      .player__name {
+        color: var(--text-primary-color);
+        align-self: center;
+        flex-grow: 1;
+        text-align: left;
+      }
+
+      p {
+        display: inline-block;
+        margin: 0;
+      }
+
+      material-value-chooser {
+        z-index: 100;
+      }
+
+      .player {
+        display: flex;
+        padding: 0 0 3px 0;
+      }
+
+      .player__result {
+        display: inline-block;
+        position: absolute;
+        left: calc(50% - 28px);
+        top: -1px;
+      }
+
+      .wrapper {
+        display: block;
+      }
+
+      paper-input {
+        display: inline-block;
+        width: 60px;
+      }
+
+      .match__wrapper {
+        display: flex;
+        flex-direction: column;
+      }
+    </style>
+    <!-- felix graier -->
+    <firebase-document app-name="office-fifa" path="/fixtures/[[fixtureId]]" data="{{fixture}}">
+    </firebase-document>
+
+    <firebase-document app-name="office-fifa" path="/users/[[fixture.home]]" data="{{home}}">
+    </firebase-document>
+
+    <firebase-document app-name="office-fifa" path="/users/[[fixture.away]]" data="{{away}}">
+    </firebase-document>
+
+    <div class="match__wrapper">
+      <div class="player">
+        <img src="[[home.photoURL]]">
+        <div class="player__name">
+          <span>[[home.displayName]]</span>
+        </div>
+        <material-value-chooser id="goalsHome" values="[[goalValues]]" value="{{fixture.goalsHome}}" icon="add"></material-value-chooser>
+      </div>
+      <div class="player">
+        <img src="[[away.photoURL]]">
+        <div class="player__name">
+          <span>[[away.displayName]]</span>
+        </div>
+        <material-value-chooser id="goalsAway" values="[[goalValues]]" value="{{fixture.goalsAway}}" icon="add"></material-value-chooser>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    /**
+     * `office-my-match` Description
+     *
+     * @summary ShortDescription.
+     * @customElement
+     * @polymer
+     * @extends {Polymer.Element}
+     */
+    class OfficeMyMatch extends Polymer.Element {
+      /**
+       * String providing the tag name to register the element under.
+       */
+      static get is() {
+        return 'office-my-match';
+      }
+
+      /**
+       * Object describing property-related metadata used by Polymer features
+       */
+      static get properties() {
+        return {
+          fixtureId: String,
+          fixture: Object,
+          homeGoals: {
+            type: Number,
+            value: 0
+          },
+          awayGoals: {
+            type: Number,
+            value: 0
+          },
+          goalValues: {
+            type: Array,
+            value: [0, 1, 2, 3]
+          }
+        };
+      }
+
+      toggle() {
+        this.$.collapse.toggle();
+      }
+
+    }
+
+    window.customElements.define(OfficeMyMatch.is, OfficeMyMatch);
+  </script>
+</dom-module>

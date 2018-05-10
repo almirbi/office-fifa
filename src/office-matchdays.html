@@ -1,0 +1,91 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-query.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+
+<link rel="import" href="../bower_components/iron-list/iron-list.html">
+
+<link rel="import" href="office-matchday.html">
+
+
+<dom-module id="office-matchdays">
+  <template>
+    <custom-style>
+      <style is="custom-style">
+        paper-fab.blue {
+          --paper-fab-background: var(--paper-light-blue-500);
+          --paper-fab-keyboard-focus-background: var(--paper-light-blue-900);
+        }
+
+        paper-fab.orange {
+          --paper-fab-background: var(--paper-orange-500);
+          --paper-fab-keyboard-focus-background: var(--paper-orange-900);
+        }
+
+        paper-fab {
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          transition: transform 0.3s ease;
+          z-index: 300;
+        }
+
+        paper-fab.open {
+          transform: rotate(45deg);
+        }
+
+        .matchdays__message {
+          height: 100px;
+          padding: 100px 20px;
+          text-align: center;
+        }
+      </style>
+    </custom-style>
+
+
+
+    <template is="dom-repeat" items="[[matchdays]]">
+      <office-matchday user="[[user]]" matchday="[[item]]"></office-matchday>
+    </template>
+
+    <template is="dom-if" if="[[_isUserAdmin(user.isAdmin, user.*, user)]]">
+
+    </template>
+  </template>
+
+
+
+
+  <script>
+    class OfficeMatchdays extends Polymer.Element {
+      static get is() { return 'office-matchdays'; }
+
+      static get properties() {
+        return {
+          matchdays: {
+            type: Object
+          },
+          user: Object
+        }
+      }
+
+      _isUserAdmin(isAdmin, user) {
+        return typeof isAdmin === 'boolean' && isAdmin;
+      }
+    }
+
+    window.customElements.define(OfficeMatchdays.is, OfficeMatchdays);
+  </script>
+</dom-module>

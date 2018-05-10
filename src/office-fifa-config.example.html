@@ -1,0 +1,40 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+
+<dom-module id="office-fifa-config">
+    <script>
+        /**
+         * `office-fifa-config` 
+         *
+         * @summary API keys for Firebase; made so that the personal keys can be kept out of the repo.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class OfficeFifaConfig extends Polymer.Element {
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'office-fifa-config';
+            }
+            static get properties() {
+                return {
+                    firebase: {
+                        type: Object,
+                        value: () => ({
+                            apiKey: '',
+                            authDomain: '',
+                            storageBucket: '',
+                            messagingSenderId: '',
+                            projectId: '',
+                            databaseUrl: ''
+                        }),
+                        notify: true
+                    }
+                };
+            }
+        }
+
+        window.customElements.define(OfficeFifaConfig.is, OfficeFifaConfig);
+    </script>
+</dom-module>

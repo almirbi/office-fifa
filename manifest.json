@@ -1,0 +1,21 @@
+{
+  "name": "Jan's Office FIFA",
+  "short_name": "Jan's OF",
+  "description": "FIFA season tournmanets",
+  "icons": [
+    {
+      "src": "images/manifest/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "images/manifest/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/",
+  "display": "fullscreen",
+  "theme_color": "#E91E63",
+  "background_color": "#E91E63"
+}

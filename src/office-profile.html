@@ -1,0 +1,159 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-auth.html">
+<link rel="import" href="../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+
+
+<link rel="import" href="office-my-matches.html">
+
+<dom-module id="office-profile">
+  <template>
+    <style include="shared-styles">
+      .wrapper {
+        display: flex;
+      }
+
+      .profile-pic {
+        line-height: 0;
+      }
+
+      .profile-pic img {
+        border-top-right-radius: 100%;
+        border-bottom-right-radius: 100%;
+        width: 100px;
+
+      }
+
+      .rank__wrapper {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+      }
+
+      .rank {
+        font-size: 3em;
+        color: var(--accent-color);
+
+      }
+
+
+      .subtle {
+        font-size: 0.8em;
+        color: var(--secondary-text-color);
+      }
+
+      paper-card {
+
+        width: calc(100%);
+        text-align: center;
+        margin: 5px 0;
+
+      }
+    </style>
+
+    <div class="error" hidden$="[[!error]]">[[error.code]]: [[error.message]]</div>
+
+    <firebase-query app-name="office-fifa" id="document">
+    </firebase-query>
+
+    <firebase-query app-name="office-fifa" path="/seasons" data="{{activeSeasons}}" order-by-child="status" equal-to="active"></firebase-query>
+    <firebase-query app-name="office-fifa" path="/fixtures" data="{{fixtures}}" order-by-child="season" equal-to="[[season.$key]]"></firebase-query>
+    <office-score-calculator fixtures="[[fixtures]]" scores-sorted-mid="{{scoresSortedMid}}"></office-score-calculator>
+
+    <paper-card>
+      <div class="wrapper">
+        <div class="profile-pic">
+          <img src="[[user.photoURL]]" />
+        </div>
+        <div class="rank__wrapper">
+          <span class="rank">[[rank]]</span>
+          <span class="subtle">Active Season Rank</span>
+        </div>
+      </div>
+    </paper-card>
+
+  </template>
+
+  <script>
+    class OfficeProfile extends Polymer.Element {
+      static get is() { return 'office-profile'; }
+
+      static get properties() {
+        return {
+          error: {
+            type: String,
+            value: null
+          },
+          rank: {
+            type: Number,
+            computed: '_getRank(scoresSortedMid)'
+          },
+          email: String,
+          password: String,
+          user: {
+            type: Object
+          },
+          activeSeasons: {
+            type: Array
+          },
+          season: {
+            type: Object,
+            computed: '_getSeason(activeSeasons)'
+          },
+          scoresSortedMid: {
+            type: Object
+          }
+        }
+      }
+
+      _getSeason(activeSeasons) {
+        return activeSeasons ? activeSeasons[0] : [];
+      }
+
+      _getRank(scoresSortedMid) {
+        let rank = "n/a";
+
+        scoresSortedMid.forEach((element, index) => {
+          if (element.userObject && this.user.uid === element.userObject.$key) {
+            rank = index + 1;
+            return;
+          }
+        });
+
+        switch (rank[rank.length - 1]) {
+          case "1":
+            rank += "st"
+            break;
+          case "2":
+            rank += "nd"
+            break;
+          case "3":
+            rank += "rd"
+            break;
+          case "4":
+            rank += "th"
+            break;
+        }
+
+        return rank;
+      }
+
+
+    }
+
+    window.customElements.define(OfficeProfile.is, OfficeProfile);
+  </script>
+</dom-module>

@@ -1,0 +1,202 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+
+<link rel="import" href="office-matchday-add.html">
+<link rel="import" href="office-my-matches.html">
+<link rel="import" href="office-matchday-join.html">
+<link rel="import" href="office-matchday-approve.html">
+<link rel="import" href="office-matchday-scoreboard.html">
+
+<dom-module id="office-matchday">
+  <template>
+    <custom-style>
+      <style is="custom-style">
+        .matchdays__single {
+          padding: 15px;
+          display: flex;
+          flex-direction: column;
+          width: 100%;
+          text-align: center;
+          margin: 5px 0;
+        }
+
+        #details {
+          height: auto;
+        }
+
+        .date__inner {
+          font-size: 0.6em;
+          display: block;
+        }
+
+        .season__name--subtle {
+          font-size: 0.8em;
+          color: white;
+        }
+
+        .season__name {
+          font-size: 1.6em;
+          margin: 8px;
+          display: inline-block;
+          color: var(--secondary-text-color);
+          font-weight: 200;
+        }
+
+        paper-icon-button {
+          color: var(--secondary-text-color);
+        }
+
+        .matchday--active {
+          display: flex;
+          flex-direction: column;
+        }
+
+        #expandIcon {
+          position: absolute;
+          right: 20px;
+          margin: 8px;
+        }
+      </style>
+    </custom-style>
+
+    <firebase-document id="season" app-name="office-fifa" path="/seasons/[[matchday.season]]" data="{{season}}">
+    </firebase-document>
+
+    <paper-card id="matchday" class="matchdays__single">
+      <paper-icon-button on-click="toggle" id="expandIcon" icon="{{icon}}" title="expand-more"></paper-icon-button>
+      <span class="season__name">Matchday
+        <span class="season__name--subtle">([[shortSeasonName(season.name)]])</span>
+        <moment-element input-format="x" output-format="HH:mm" datetime="{{matchday.date}}}" output="{{outputTime}}"></moment-element>
+        <moment-element id="moment" datetime="{{matchday.date}}" from="now" output="{{outputRelative}}">
+          <span class="date__inner">[[outputRelative]], [[outputTime]]</span>
+        </moment-element>
+      </span>
+      <iron-collapse id="collapse">
+        <div id="details">
+          <!-- <office-matchday-winner></office-matchday-winner> -->
+          <office-matchday-join matchday="[[matchday]]" user="[[user]]"></office-matchday-join>
+          <office-matchday-approve user="[[user]]" matchday="[[matchday]]"></office-matchday-approve>
+          <office-my-matches matchday="[[matchday]]" user="[[user]]"></office-my-matches>
+
+          <firebase-query app-name="office-fifa" path="/fixtures" order-by-child="matchday" equal-to="[[matchday.$key]]" data="{{fixtures}}"></firebase-query>
+
+          <iron-collapse opened="[[matchday.isStarted]]">
+            <office-matchday-scoreboard fixtures="[[fixtures]]" user="[[user]] "></office-matchday-scoreboard>
+            <template is="dom-if" if="[[user.isAdmin]]">
+              <firebase-document app-name="office-fifa" id="query"></firebase-document>
+              <paper-button hidden$="[[_isEnded(matchday)]]" class="custom pink" on-click="finish" raised>End tournament</paper-button>
+            </template>
+          </iron-collapse>
+        </div>
+      </iron-collapse>
+    </paper-card>
+  </template>
+
+  <script>
+    /**
+     * `office-matchday` Description
+     *
+     * @summary ShortDescription.
+     * @customElement
+     * @polymer
+     * @extends {Polymer.Element}
+     */
+    class OfficeMatchday extends Polymer.Element {
+      /**
+       * String providing the tag name to register the element under.
+       */
+      static get is() {
+        return 'office-matchday';
+      }
+
+      /**
+       * Object describing property-related metadata used by Polymer features
+       */
+      static get properties() {
+        return {
+          /**
+           * Description for prop
+           */
+          user: {
+            type: Object,
+            value: undefined,
+          },
+          icon: {
+            type: String,
+            value: 'expand-more'
+          },
+          season: {
+            type: Object
+          },
+          matchday: {
+            type: Object
+          },
+          animation: Object,
+          isExpanded: {
+            type: Boolean,
+            value: false
+          },
+        };
+      }
+
+      _isEnded(matchday) {
+        return matchday.status === 'complete'
+      }
+
+      shortSeasonName(name) {
+        if (name && name.indexOf('eason ') > -1) {
+          return name.replace('eason ', '');
+        } else {
+          return 'KO';
+        }
+      }
+
+      finish() {
+        this.shadowRoot.querySelector("#query").setStoredValue(`/matchdays/${this.matchday.$key}/status`, 'complete');
+      }
+
+      canApprove() {
+        return this.user && this.user && this.user.isAdmin && !this.matchday.isStarted;
+      }
+
+      toggle() {
+        /* if (this.$.collapse.opened) {
+          this.animation.reverse();
+        } else {
+          this.animation = this.$.expandIcon.animate([
+            { transform: 'rotate(0)' },
+            { transform: 'rotate(180deg)' }
+          ], {
+              duration: 300,
+              fill: "forwards"
+            });
+
+        }
+ */
+        this.$.collapse.toggle();
+      }
+
+      /**
+       * Instance of the element is created/upgraded. Use: initializing state,
+       * set up event listeners, create shadow dom.
+       * @constructor
+       */
+      constructor() {
+        super();
+      }
+
+      /**
+       * Use for one-time configuration of your component after local DOM is initialized. 
+       */
+      ready() {
+        super.ready();
+
+        Polymer.RenderStatus.afterNextRender(this, function () {
+
+        });
+      }
+
+    }
+
+    window.customElements.define(OfficeMatchday.is, OfficeMatchday);
+  </script>
+</dom-module>
